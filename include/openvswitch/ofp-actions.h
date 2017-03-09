@@ -465,8 +465,8 @@ struct ofpact_set_field {
         bool flow_has_vlan;   /* VLAN present at action validation time. */
         const struct mf_field *field;
     );
-    union mf_value value[];  /* Significant value bytes followed by
-                              * significant mask bytes. */
+    union mf_value value[0];  /* Significant value bytes followed by
+                               * significant mask bytes. */
 };
 BUILD_ASSERT_DECL(offsetof(struct ofpact_set_field, value)
                   % OFPACT_ALIGNTO == 0);
@@ -542,7 +542,7 @@ struct ofpact_meter {
  * Used for OFPIT11_WRITE_ACTIONS, NXAST_CLONE. */
 struct ofpact_nest {
     OFPACT_PADDED_MEMBERS(struct ofpact ofpact;);
-    struct ofpact actions[];
+    struct ofpact actions[0];
 };
 BUILD_ASSERT_DECL(offsetof(struct ofpact_nest, actions) % OFPACT_ALIGNTO == 0);
 BUILD_ASSERT_DECL(offsetof(struct ofpact_nest, actions)
@@ -750,7 +750,7 @@ struct ofpact_learn {
         uint16_t fin_hard_timeout; /* Hard timeout after FIN, if nonzero. */
     );
 
-    struct ofpact_learn_spec specs[];
+    struct ofpact_learn_spec specs[0];
 };
 
 static inline const struct ofpact_learn_spec *

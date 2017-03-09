@@ -16,8 +16,10 @@ import argparse
 
 import ovs.vlog
 
-from six.moves import range
-
+try:
+    from six.moves import range
+except ImportError:   # python-six < 1.4.0
+    from six.moves import xrange as range
 
 def main():
     modules = [ovs.vlog.Vlog("module_%d" % i) for i in range(3)]

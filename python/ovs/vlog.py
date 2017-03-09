@@ -27,7 +27,10 @@ import ovs.unixctl
 import ovs.util
 
 import six
-from six.moves import range
+try:
+    from six.moves import range
+except ImportError:   # python-six < 1.4.0
+    from six.moves import xrange as range
 
 DESTINATIONS = {"console": "info", "file": "info", "syslog": "info"}
 PATTERNS = {

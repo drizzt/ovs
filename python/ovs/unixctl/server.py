@@ -26,7 +26,10 @@ import ovs.version
 import ovs.vlog
 
 import six
-from six.moves import range
+try:
+    from six.moves import range
+except ImportError:   # python-six < 1.4.0
+    from six.moves import xrange as range
 
 Message = ovs.jsonrpc.Message
 vlog = ovs.vlog.Vlog("unixctl_server")

@@ -24,7 +24,10 @@ import ovs.poller
 import ovs.vlog
 
 import six
-from six.moves import range
+try:
+    from six.moves import range
+except ImportError:   # python-six < 1.4.0
+    from six.moves import xrange as range
 
 if sys.platform == 'win32':
     import ovs.winutils as winutils

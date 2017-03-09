@@ -19,7 +19,10 @@ import ovs.db.parser
 from ovs.db import error
 
 import six
-from six.moves import range
+try:
+    from six.moves import range
+except ImportError:   # python-six < 1.4.0
+    from six.moves import xrange as range
 
 uuidRE = re.compile("^xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx$"
                     .replace('x', '[0-9a-fA-F]'))

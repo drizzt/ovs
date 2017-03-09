@@ -29,8 +29,10 @@ import subprocess
 import exceptions
 
 import six.moves.xmlrpc_client
-from six.moves import range
-
+try:
+    from six.moves import range
+except ImportError:   # python-six < 1.4.0
+    from six.moves import xrange as range
 
 def str_ip(ip_address):
     """

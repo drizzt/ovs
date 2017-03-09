@@ -191,13 +191,17 @@ route_table_parse(struct ofpbuf *buf, struct route_table_msg *change)
         [RTA_DST] = { .type = NL_A_U32, .optional = true  },
         [RTA_OIF] = { .type = NL_A_U32, .optional = true },
         [RTA_GATEWAY] = { .type = NL_A_U32, .optional = true },
+#ifdef RTA_MARK
         [RTA_MARK] = { .type = NL_A_U32, .optional = true },
+#endif
     };
 
     static const struct nl_policy policy6[] = {
         [RTA_DST] = { .type = NL_A_IPV6, .optional = true },
         [RTA_OIF] = { .type = NL_A_U32, .optional = true },
+#ifdef RTA_MARK
         [RTA_MARK] = { .type = NL_A_U32, .optional = true },
+#endif
         [RTA_GATEWAY] = { .type = NL_A_IPV6, .optional = true },
     };
 
@@ -273,9 +277,11 @@ route_table_parse(struct ofpbuf *buf, struct route_table_msg *change)
                 change->rd.rta_gw = nl_attr_get_in6_addr(attrs[RTA_GATEWAY]);
             }
         }
+#ifdef RTA_MARK
         if (attrs[RTA_MARK]) {
             change->rd.mark = nl_attr_get_u32(attrs[RTA_MARK]);
         }
+#endif
     } else {
         VLOG_DBG_RL(&rl, "received unparseable rtnetlink route message");
         return 0;

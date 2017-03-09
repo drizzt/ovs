@@ -1407,7 +1407,8 @@ execute_put_dhcp_opts(const struct ovnact_put_dhcp_opts *pdo,
     }
 
     struct mf_subfield sf = expr_resolve_field(&pdo->dst);
-    union mf_subvalue sv = { .u8_val = 1 };
+    union mf_subvalue sv;
+    sv.u8_val = 1;
     mf_write_subfield_flow(&sf, &sv, uflow);
 }
 

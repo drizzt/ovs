@@ -32,8 +32,8 @@ License: ASL 2.0
 Release: 1
 Source: openvswitch-%{version}.tar.gz
 Buildroot: /tmp/openvswitch-rpm
-Requires: logrotate, hostname, python >= 2.7, python-six
-BuildRequires: python-six
+Requires: logrotate, hostname, python27-python, python27-python-six
+BuildRequires: python27-python-six, scl-utils
 BuildRequires: openssl-devel
 BuildRequires: checkpolicy, selinux-policy-devel
 
@@ -65,15 +65,15 @@ Tailored Open vSwitch SELinux policy
 %setup -q
 
 %build
-./configure --prefix=/usr --sysconfdir=/etc --localstatedir=%{_localstatedir} \
-    --libdir=%{_libdir} --enable-ssl --enable-shared
-make %{_smp_mflags}
+scl enable python27 './configure --prefix=/usr --sysconfdir=/etc --localstatedir=%{_localstatedir} \
+    --libdir=%{_libdir} --enable-ssl --enable-shared'
+scl enable python27 'make %{_smp_mflags}'
 cd selinux
-make -f %{_datadir}/selinux/devel/Makefile
+scl enable python27 'make -f %{_datadir}/selinux/devel/Makefile'
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT
+scl enable python27 'make install DESTDIR=$RPM_BUILD_ROOT'
 
 rhel_cp() {
  base=$1

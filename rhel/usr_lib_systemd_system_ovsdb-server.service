@@ -11,9 +11,8 @@ Restart=on-failure
 EnvironmentFile=-/etc/sysconfig/openvswitch
 ExecStart=/usr/share/openvswitch/scripts/ovs-ctl \
           --no-ovs-vswitchd --no-monitor --system-id=random \
+          --delete-transient-ports-on-boot \
           start $OPTIONS
 ExecStop=/usr/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd stop
 ExecReload=/usr/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd \
            --no-monitor restart $OPTIONS
-RuntimeDirectory=openvswitch
-RuntimeDirectoryMode=0755

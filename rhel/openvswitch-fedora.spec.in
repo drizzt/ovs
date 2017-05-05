@@ -246,6 +246,9 @@ done
 install -m 0755 rhel/etc_init.d_openvswitch \
         $RPM_BUILD_ROOT%{_datadir}/openvswitch/scripts/openvswitch.init
 
+install -p -D -m 0644 rhel/usr_lib_tmpfiles.d_openvswitch.conf \
+        $RPM_BUILD_ROOT%{_tmpfilesdir}/openvswitch.conf
+
 install -p -D -m 0644 rhel/etc_logrotate.d_openvswitch \
         $RPM_BUILD_ROOT/%{_sysconfdir}/logrotate.d/openvswitch
 
@@ -488,6 +491,7 @@ fi
 %{_unitdir}/ovsdb-server.service
 %{_unitdir}/ovs-vswitchd.service
 %{_datadir}/openvswitch/scripts/openvswitch.init
+%{_tmpfilesdir}/openvswitch.conf
 %{_sysconfdir}/sysconfig/network-scripts/ifup-ovs
 %{_sysconfdir}/sysconfig/network-scripts/ifdown-ovs
 %{_datadir}/openvswitch/bugtool-plugins/
@@ -534,7 +538,7 @@ fi
 %doc COPYING NOTICE README.rst NEWS rhel/README.RHEL.rst
 /var/lib/openvswitch
 /var/log/openvswitch
-%ghost %attr(755,root,root) %{_rundir}/openvswitch
+%dir %{_rundir}/openvswitch
 
 %files ovn-docker
 %{_bindir}/ovn-docker-overlay-driver

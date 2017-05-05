@@ -189,6 +189,11 @@ do_start_ovsdb () {
         if test X"$DELETE_TRANSIENT_PORTS" = Xyes; then
             del_transient_ports
         fi
+        if test X"$DELETE_TRANSIENT_PORTS_ON_BOOT" = Xyes && \
+            ! test -f "$rundir/deleted_transient_ports"; then
+            del_transient_ports
+            : > "$rundir/deleted_transient_ports"
+        fi
     fi
 }
 
@@ -503,6 +508,7 @@ set_defaults () {
 
     DELETE_BRIDGES=no
     DELETE_TRANSIENT_PORTS=no
+    DELETE_TRANSIENT_PORTS_ON_BOOT=no
 
     DAEMON_CWD=/
     FORCE_COREFILES=yes

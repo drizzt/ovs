@@ -95,11 +95,16 @@ bridges from the database.
 If the \fB\-\-delete\-transient\-ports\fR option was used, deletes all ports
 that have \fBother_config:transient\fR set to true.
 .
+.IP 7.
+If the \fB\-\-delete\-transient\-ports\-on\-boot\fR option was used, deletes
+all ports that have \fBother_config:transient\fR set to true, but only the
+first time after a boot.
+.
 .PP
 The \fBstart\fR command skips the following step if
 \fBovs\-vswitchd\fR is already running, or if the \fB\-\-no\-ovs\-vswitchd\fR
 command option is given:
-.IP 7.
+.IP 8.
 Starts \fBovs\-vswitchd\fR.
 .
 .SS "Options"
@@ -158,6 +163,12 @@ vSwitch bridges after starting \fBovsdb\-server\fR but before starting
 Deletes all ports that have the other_config:transient value set to true. This
 is important on certain environments where some ports are going to be recreated
 after reboot, but other ports need to be persisted in the database.
+.
+.IP "\fB\-\-delete\-transient\-ports\-on\-boot\fR"
+The first time after a boot, deletes all ports that have the
+other_config:transient value set to true. This is important on certain
+environments where some ports are going to be recreated after reboot,
+but other ports need to be persisted in the database.
 .
 .IP "\fB\-\-ovs\-user=user[:group]\fR"
 Ordinarily Open vSwitch daemons are started as the user invoking the ovs-ctl

@@ -86,7 +86,6 @@ Deeper Dive
 - **Testing** :doc:`topics/testing`
 
 - **Packaging:** :doc:`intro/install/debian` |
-  :doc:`intro/install/rhel` |
   :doc:`intro/install/fedora`
 
 The Open vSwitch Project

@@ -59,7 +59,6 @@ provided below.
    distributions
    debian
    fedora
-   rhel
 
 Upgrades
 --------

@@ -5,6 +5,7 @@ ovn_northd_ovn_northd_LDADD = \
 	ovn/lib/libovn.la \
 	ovsdb/libovsdb.la \
 	lib/libopenvswitch.la
+ovn_northd_ovn_northd_LDFLAGS = $(AM_LDFLAGS) $(STATIC_BINARIES_LDFLAGS)
 man_MANS += ovn/northd/ovn-northd.8
 EXTRA_DIST += ovn/northd/ovn-northd.8.xml
 CLEANFILES += ovn/northd/ovn-northd.8

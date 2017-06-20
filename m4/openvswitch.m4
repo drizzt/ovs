@@ -620,3 +620,24 @@ AC_DEFUN([OVS_LIBTOOL_VERSIONS],
   AC_MSG_RESULT([libX-$OVS_MAJOR.$OVS_MINOR.so.$LT_CURRENT.0.$OVS_MICRO)])
   AC_SUBST(OVS_LTINFO)
     ])
+
+dnl Checks for --enable-static-binaries.
+AC_DEFUN([OVS_CHECK_STATIC_BINARIES],
+    [AC_ARG_ENABLE(
+     [static-binaries],
+     [AC_HELP_STRING([--enable-static-binaries],
+                     [Build binaries statically linked with openvswitch libraries.])],
+     [case "${enableval}" in
+        (yes) static_binaries=true ;;
+        (no)  static_binaries=false ;;
+        (*) AC_MSG_ERROR([bad value ${enableval} for --enable-static-binaries]) ;;
+      esac],
+     [static_binaries=false])
+    if test x$static_binaries = xtrue && test x$enable_static = xyes &&
+    test x$enable_shared = xyes; then
+      STATIC_BINARIES_LDFLAGS=-static
+    else
+      STATIC_BINARIES_LDFLAGS=
+    fi
+    AC_SUBST([STATIC_BINARIES_LDFLAGS])
+    ])

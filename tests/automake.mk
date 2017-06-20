@@ -286,11 +286,13 @@ tests_test_ovsdb_SOURCES = tests/test-ovsdb.c
 nodist_tests_test_ovsdb_SOURCES = tests/idltest.c tests/idltest.h
 EXTRA_DIST += tests/uuidfilt.pl tests/ovsdb-monitor-sort.pl
 tests_test_ovsdb_LDADD = ovsdb/libovsdb.la lib/libopenvswitch.la
+tests_test_ovsdb_LDFLAGS = $(AM_LDFLAGS) $(STATIC_BINARIES_LDFLAGS)
 
 noinst_PROGRAMS += tests/test-lib
 tests_test_lib_SOURCES = \
 	tests/test-lib.c
 tests_test_lib_LDADD = lib/libopenvswitch.la
+tests_test_lib_LDFLAGS = $(AM_LDFLAGS) $(STATIC_BINARIES_LDFLAGS)
 
 # idltest schema and IDL
 OVSIDL_BUILT += tests/idltest.c tests/idltest.h tests/idltest.ovsidl
@@ -362,6 +364,7 @@ tests_ovstest_SOURCES += \
 endif
 
 tests_ovstest_LDADD = lib/libopenvswitch.la ovn/lib/libovn.la
+tests_ovstest_LDFLAGS = $(AM_LDFLAGS) $(STATIC_BINARIES_LDFLAGS)
 dist_check_SCRIPTS = tests/flowgen.pl
 
 noinst_PROGRAMS += tests/test-strtok_r

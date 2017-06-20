@@ -21,6 +21,7 @@ ovn_controller_ovn_controller_SOURCES = \
 	ovn/controller/physical.c \
 	ovn/controller/physical.h
 ovn_controller_ovn_controller_LDADD = ovn/lib/libovn.la lib/libopenvswitch.la
+ovn_controller_ovn_controller_LDFLAGS = $(AM_LDFLAGS) $(STATIC_BINARIES_LDFLAGS)
 man_MANS += ovn/controller/ovn-controller.8
 EXTRA_DIST += ovn/controller/ovn-controller.8.xml
 CLEANFILES += ovn/controller/ovn-controller.8

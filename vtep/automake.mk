@@ -35,6 +35,7 @@ man_MANS += \
 
 vtep_vtep_ctl_SOURCES = vtep/vtep-ctl.c
 vtep_vtep_ctl_LDADD = vtep/libvtep.la lib/libopenvswitch.la
+vtep_vtep_ctl_LDFLAGS = $(AM_LDFLAGS) $(STATIC_BINARIES_LDFLAGS)
 
 # ovs-vtep
 scripts_SCRIPTS += \

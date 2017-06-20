@@ -32,6 +32,12 @@
 # This is enabled by default for versions of the distribution that
 # have Python 3 by default (Fedora > 22).
 %bcond_with build_python3
+# Add option to build as shared libraries (--with shared)
+%bcond_with shared
+# Add option to build with the the native json extension for
+# python{2,3}-openvswitch (--with native_json)
+# This requires openvswitch built with shared library (--with shared)
+%bcond_with native_json
 
 # Enable PIE, bz#955181
 %global _hardened_build 1
@@ -118,7 +124,9 @@ Tailored Open vSwitch SELinux policy
 %package -n %{_py2}-openvswitch
 Summary: Open vSwitch python2 bindings
 License: ASL 2.0
+%if ! %{with shared} || ! %{with native_json}
 BuildArch: noarch
+%endif
 Requires: %{_py2}
 Requires: %{_py2}-six
 %{?python_provide:%python_provide python2-openvswitch = %{version}-%{release}}
@@ -129,7 +137,9 @@ Python bindings for the Open vSwitch database
 %package -n python3-openvswitch
 Summary: Open vSwitch python3 bindings
 License: ASL 2.0
+%if ! %{with shared} || ! %{with native_json}
 BuildArch: noarch
+%endif
 Requires: python3
 Requires: python3-six
 %{?python_provide:%python_provide python3-openvswitch = %{version}-%{release}}
@@ -141,7 +151,9 @@ Python bindings for the Open vSwitch database
 %package test
 Summary: Open vSwitch testing utilities
 License: ASL 2.0
+%if ! %{with shared} || ! %{with native_json}
 BuildArch: noarch
+%endif
 Requires: %{_py2}-openvswitch = %{version}-%{release}
 Requires: %{_py2} %{_py2}-twisted
 
@@ -152,11 +164,13 @@ issues in Open vSwitch setup.
 %package devel
 Summary: Open vSwitch OpenFlow development package (library, headers)
 License: ASL 2.0
+%if ! %{with shared}
 Provides: openvswitch-static = %{version}-%{release}
+%endif
 
 %description devel
-This provides static library, libopenswitch.a and the openvswitch header
-files needed to build an external application.
+This provides the libraries and the header files needed to build an external
+application.
 
 %package ovn-central
 Summary: Open vSwitch - Open Virtual Network support
@@ -219,16 +233,30 @@ Docker network plugins for OVN.
 %if %{with dpdk}
 	--with-dpdk=$(dirname %{_datadir}/dpdk/*/.config) \
 %endif
+%if %{with shared}
+	--enable-shared \
+	--enable-static-binaries \
+%endif
 	--enable-ssl \
 	--with-pkidir=%{_sharedstatedir}/openvswitch/pki
 
 make %{?_smp_mflags}
-cd selinux
-make -f %{_datadir}/selinux/devel/Makefile
+make -C selinux -f %{_datadir}/selinux/devel/Makefile
+%if %{with shared} && %{with native_json}
+cd python
+%py2_build
+%if 0%{?fedora} > 22 || %{with build_python3}
+%py3_build
+%endif
+%endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
+rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
+%if %{with shared}
+rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
+%endif
 
 install -d -m 0755 $RPM_BUILD_ROOT%{_rundir}/openvswitch
 install -d -m 0755 $RPM_BUILD_ROOT%{_localstatedir}/log/openvswitch
@@ -258,6 +286,7 @@ install -p -m 0755 rhel/etc_sysconfig_network-scripts_ifdown-ovs \
 install -p -m 0755 rhel/etc_sysconfig_network-scripts_ifup-ovs \
         $RPM_BUILD_ROOT/%{_sysconfdir}/sysconfig/network-scripts/ifup-ovs
 
+%if ! %{with shared} || ! %{with native_json}
 install -d -m 0755 $RPM_BUILD_ROOT%{python2_sitelib}
 cp -a $RPM_BUILD_ROOT/%{_datadir}/openvswitch/python/* \
    $RPM_BUILD_ROOT%{python2_sitelib}
@@ -266,6 +295,7 @@ cp -a $RPM_BUILD_ROOT/%{_datadir}/openvswitch/python/* \
 install -d -m 0755 $RPM_BUILD_ROOT%{python3_sitelib}
 cp -a $RPM_BUILD_ROOT/%{_datadir}/openvswitch/python/ovs \
    $RPM_BUILD_ROOT%{python3_sitelib}
+%endif
 %endif
 
 rm -rf $RPM_BUILD_ROOT/%{_datadir}/openvswitch/python/
@@ -284,6 +314,15 @@ install -p -m 0644 rhel/usr_lib_firewalld_services_ovn-central-firewall-service.
         $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/services/ovn-central-firewall-service.xml
 install -p -m 0644 rhel/usr_lib_firewalld_services_ovn-host-firewall-service.xml \
         $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/services/ovn-host-firewall-service.xml
+
+%if %{with shared} && %{with native_json}
+cd python
+%py2_install
+%if 0%{?fedora} > 22 || %{with build_python3}
+%py3_install
+%endif
+cp -a ovstest $RPM_BUILD_ROOT%{python2_sitearch}
+%endif
 
 # remove unpackaged files
 rm -f $RPM_BUILD_ROOT%{_bindir}/ovs-parse-backtrace \
@@ -444,12 +483,22 @@ fi
 %{_datadir}/selinux/packages/%{name}/openvswitch-custom.pp
 
 %files -n %{_py2}-openvswitch
+%if %{with shared} && %{with native_json}
+%{python2_sitearch}/ovs
+%{python2_sitearch}/ovs-%{version}-py?.?.egg-info
+%else
 %{python2_sitelib}/ovs
+%endif
 %doc COPYING
 
 %if 0%{?fedora} > 22 || %{with build_python3}
 %files -n python3-openvswitch
+%if %{with shared} && %{with native_json}
+%{python3_sitearch}/ovs
+%{python3_sitearch}/ovs-%{version}-py?.?.egg-info
+%else
 %{python3_sitelib}/ovs
+%endif
 %doc COPYING
 %endif
 
@@ -466,11 +515,18 @@ fi
 %{_mandir}/man1/ovs-pcap.1*
 %{_mandir}/man8/ovs-tcpdump.8*
 %{_mandir}/man1/ovs-tcpundump.1*
+%if %{with shared} && %{with native_json}
+%{python2_sitearch}/ovstest
+%else
 %{python2_sitelib}/ovstest
+%endif
 
 %files devel
+%if %{with shared}
+%{_libdir}/lib*.so
+%else
 %{_libdir}/*.a
-%{_libdir}/*.la
+%endif
 %{_libdir}/pkgconfig/*.pc
 %{_includedir}/openvswitch/*
 %{_includedir}/openflow/*
@@ -512,6 +568,9 @@ fi
 %{_bindir}/ovs-testcontroller
 %{_bindir}/ovs-pki
 %{_bindir}/vtep-ctl
+%if %{with shared}
+%{_libdir}/lib*.so.*
+%endif
 %{_sbindir}/ovs-bugtool
 %{_sbindir}/ovs-vswitchd
 %{_sbindir}/ovsdb-server

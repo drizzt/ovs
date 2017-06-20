@@ -79,7 +79,9 @@ setup_args = dict(
         'Programming Language :: Python :: 3.5',
     ],
     ext_modules=[setuptools.Extension("ovs._json", sources=["ovs/_json.c"],
-                                      libraries=['openvswitch'])],
+                                      libraries=['openvswitch'],
+                                      include_dirs=['../include'],
+                                      library_dirs=['../lib/.libs'])],
     cmdclass={'build_ext': try_build_ext},
 )
 

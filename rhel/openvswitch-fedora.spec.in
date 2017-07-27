@@ -314,6 +314,10 @@ install -d -m 0755 $RPM_BUILD_ROOT%{_prefix}/lib/ocf/resource.d/ovn
 ln -s %{_datadir}/openvswitch/scripts/ovndb-servers.ocf \
       $RPM_BUILD_ROOT%{_prefix}/lib/ocf/resource.d/ovn/ovndb-servers
 
+install -p -D -m 0755 \
+        rhel/usr_share_openvswitch_scripts_ovs-reload \
+        $RPM_BUILD_ROOT%{_datadir}/openvswitch/scripts/ovs-reload
+
 # remove unpackaged files
 rm -f $RPM_BUILD_ROOT%{_bindir}/ovs-parse-backtrace \
         $RPM_BUILD_ROOT%{_sbindir}/ovs-vlan-bug-workaround \
@@ -538,6 +542,7 @@ fi
 %{_datadir}/openvswitch/scripts/ovs-save
 %{_datadir}/openvswitch/scripts/ovs-vtep
 %{_datadir}/openvswitch/scripts/ovs-ctl
+%{_datadir}/openvswitch/scripts/ovs-reload
 %config %{_datadir}/openvswitch/vswitch.ovsschema
 %config %{_datadir}/openvswitch/vtep.ovsschema
 %{_bindir}/ovs-appctl

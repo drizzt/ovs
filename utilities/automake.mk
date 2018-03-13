@@ -6,7 +6,7 @@ bin_PROGRAMS += \
 	utilities/ovs-vsctl
 bin_SCRIPTS += utilities/ovs-docker \
 	utilities/ovs-pki
-if HAVE_PYTHON
+if HAVE_PYTHON2
 bin_SCRIPTS += \
 	utilities/ovs-dpctl-top \
 	utilities/ovs-l3ping \

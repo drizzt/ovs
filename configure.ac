@@ -202,6 +202,7 @@ OVS_CHECK_LINUX_SCTP_CT
 OVS_CHECK_LINUX_VIRTIO_TYPES
 OVS_CHECK_DPDK
 OVS_CHECK_PRAGMA_MESSAGE
+OVS_CHECK_VERSION_SUFFIX
 AC_SUBST([CFLAGS])
 AC_SUBST([OVS_CFLAGS])
 AC_SUBST([OVS_LDFLAGS])
@@ -213,6 +214,7 @@ AC_CONFIG_FILES(lib/libsflow.pc)
 AC_CONFIG_FILES(ofproto/libofproto.pc)
 AC_CONFIG_FILES(ovsdb/libovsdb.pc)
 AC_CONFIG_FILES(include/openvswitch/version.h)
+AC_CONFIG_FILES(python/ovs/version.py)
 
 dnl This makes sure that include/openflow gets created in the build directory.
 AC_CONFIG_COMMANDS([include/openflow/openflow.h.stamp])

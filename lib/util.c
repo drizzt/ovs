@@ -618,12 +618,14 @@ ovs_set_program_name(const char *argv0, const char *version)
     program_name = basename;
 
     free(program_version);
-    if (!strcmp(version, VERSION)) {
-        program_version = xasprintf("%s (Open vSwitch) "VERSION"\n",
+    if (!strcmp(version, VERSION VERSION_SUFFIX)) {
+        program_version = xasprintf("%s (Open vSwitch) "VERSION
+                                    VERSION_SUFFIX"\n",
                                     program_name);
     } else {
         program_version = xasprintf("%s %s\n"
-                                    "Open vSwitch Library "VERSION"\n",
+                                    "Open vSwitch Library "VERSION
+                                    VERSION_SUFFIX"\n",
                                     program_name, version);
     }
 }

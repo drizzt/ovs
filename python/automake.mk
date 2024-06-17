@@ -125,6 +125,12 @@ UNINSTALL_LOCAL += ovs-uninstall-local
 ovs-uninstall-local:
 	rm -f $(DESTDIR)$(pkgdatadir)/python/ovs/dirs.py
 
+ALL_LOCAL += $(srcdir)/python/ovs/version.py
+$(srcdir)/python/ovs/version.py: config.status
+	$(AM_V_GEN)$(ro_shell) > $(@F).tmp && \
+	echo 'VERSION = "$(VERSION)$(VERSION_SUFFIX)"' >> $(@F).tmp && \
+	if cmp -s $(@F).tmp $@; then touch $@; else cp $(@F).tmp $@; fi; rm $(@F).tmp
+
 ALL_LOCAL += $(srcdir)/python/ovs/dirs.py
 $(srcdir)/python/ovs/dirs.py: python/ovs/dirs.py.template
 	$(AM_V_GEN)sed \

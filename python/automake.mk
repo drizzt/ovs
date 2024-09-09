@@ -50,7 +50,6 @@ ovs_pyfiles = \
 	python/ovs/unixctl/client.py \
 	python/ovs/unixctl/server.py \
 	python/ovs/util.py \
-	python/ovs/version.py \
 	python/ovs/vlog.py \
 	python/ovs/winutils.py
 
@@ -80,13 +79,13 @@ EXTRA_DIST += \
 # C extension support.
 EXTRA_DIST += python/ovs/_json.c
 
-PYFILES = $(ovs_pyfiles) python/ovs/dirs.py python/setup.py $(ovstest_pyfiles) $(ovs_pytests)
+PYFILES = $(ovs_pyfiles) python/ovs/dirs.py python/ovs/version.py python/setup.py $(ovstest_pyfiles) $(ovs_pytests)
 
 EXTRA_DIST += $(PYFILES)
 PYCOV_CLEAN_FILES += $(PYFILES:.py=.py,cover)
 
 FLAKE8_PYFILES += \
-	$(filter-out python/ovs/compat/% python/ovs/dirs.py python/setup.py,$(PYFILES)) \
+	$(filter-out python/ovs/compat/% python/ovs/dirs.py python/ovs/version.py python/setup.py,$(PYFILES)) \
 	python/ovs_build_helpers/__init__.py \
 	python/ovs_build_helpers/extract_ofp_fields.py \
 	python/ovs_build_helpers/nroff.py \
@@ -124,12 +123,15 @@ install-data-local: ovs-install-data-local
 UNINSTALL_LOCAL += ovs-uninstall-local
 ovs-uninstall-local:
 	rm -f $(DESTDIR)$(pkgdatadir)/python/ovs/dirs.py
+	rm -f $(DESTDIR)$(pkgdatadir)/python/ovs/version.py
 
 ALL_LOCAL += $(srcdir)/python/ovs/version.py
 $(srcdir)/python/ovs/version.py: config.status
 	$(AM_V_GEN)$(ro_shell) > $(@F).tmp && \
 	echo 'VERSION = "$(VERSION)$(VERSION_SUFFIX)"' >> $(@F).tmp && \
 	if cmp -s $(@F).tmp $@; then touch $@; else cp $(@F).tmp $@; fi; rm $(@F).tmp
+CLEANFILES += python/ovs/version.py
+.PHONY: $(srcdir)/python/ovs/version.py
 
 ALL_LOCAL += $(srcdir)/python/ovs/dirs.py
 $(srcdir)/python/ovs/dirs.py: python/ovs/dirs.py.template
@@ -145,6 +147,7 @@ $(srcdir)/python/ovs/dirs.py: python/ovs/dirs.py.template
 	mv $@.tmp $@
 EXTRA_DIST += python/ovs/dirs.py.template
 CLEANFILES += python/ovs/dirs.py
+.PHONY: $(srcdir)/python/ovs/dirs.py
 
 ALL_LOCAL += $(srcdir)/python/setup.py
 $(srcdir)/python/setup.py: python/setup.py.template config.status

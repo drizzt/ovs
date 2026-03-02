@@ -506,8 +506,14 @@ dpdk_init__(const struct smap *ovs_other_config)
     /* We are called from the main thread here */
     RTE_PER_LCORE(_lcore_id) = NON_PMD_CORE_ID;
 
-    /* Finally, register the dpdk classes */
-    dpif_offload_register_provider(&dpif_offload_dpdk_class);
+    /* Finally, register the dpdk classes.
+     *
+     * The DPDK offload class (dpif_offload_dpdk_class) is registered via
+     * the base_dpif_offload_classes[] array in dpif-offload.c using a weak
+     * symbol mechanism, so it does not need explicit registration here.
+     * This reference ensures the linker pulls in dpif-offload-dpdk.o from
+     * libopenvswitchdpdk so the strong definition overrides the weak stub. */
+    ovs_assert(dpif_offload_dpdk_class.type != NULL);
     netdev_dpdk_register(ovs_other_config);
     return true;
 }

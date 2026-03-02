@@ -154,6 +154,13 @@ dpif_offload_module_init(void)
                              dpif_offload_show_classes, NULL);
 
     for (int i = 0; i < ARRAY_SIZE(base_dpif_offload_classes); i++) {
+        /* Skip weak stub entries (zero-initialized, type is NULL).
+         * This happens for the DPDK offload class in binaries that are
+         * not linked with DPDK. */
+        if (!base_dpif_offload_classes[i]->type) {
+            continue;
+        }
+
         ovs_assert(base_dpif_offload_classes[i]->open
                    && base_dpif_offload_classes[i]->close
                    && base_dpif_offload_classes[i]->can_offload

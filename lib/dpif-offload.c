@@ -40,13 +40,11 @@ static struct shash dpif_offload_classes \
 static struct shash dpif_offload_providers \
     OVS_GUARDED_BY(dpif_offload_mutex) = \
     SHASH_INITIALIZER(&dpif_offload_providers);
+static bool providers_sealed OVS_GUARDED_BY(dpif_offload_mutex) = false;
 
 static const struct dpif_offload_class *base_dpif_offload_classes[] = {
 #if defined(__linux__)
     &dpif_offload_tc_class,
-#endif
-#ifdef DPDK_NETDEV
-    &dpif_offload_dpdk_class,
 #endif
     /* While adding a new offload class to this structure make sure to also
      * update the dpif_offload_provider_priority_list below. */
@@ -90,12 +88,18 @@ dpif_offload_register_provider__(const struct dpif_offload_class *class)
     return 0;
 }
 
-static int
+int
 dpif_offload_register_provider(const struct dpif_offload_class *class)
 {
     int error;
 
     ovs_mutex_lock(&dpif_offload_mutex);
+    if (providers_sealed) {
+        VLOG_WARN("attempted to register dpif offload class '%s' after "
+                  "a dpif has already been opened", class->type);
+        ovs_mutex_unlock(&dpif_offload_mutex);
+        return EBUSY;
+    }
     error = dpif_offload_register_provider__(class);
     ovs_mutex_unlock(&dpif_offload_mutex);
 
@@ -266,6 +270,10 @@ dpif_attach_new_offload_provider_collection(struct dpif *dpif)
     struct dpif_offload *offload;
     struct shash_node *node;
     char *tokens, *saveptr;
+
+    /* Seal the provider list.  No new offload providers can be
+     * registered after the first dpif has been opened. */
+    providers_sealed = true;
 
     /* Allocate and attach collection to dpif. */
     collection = xmalloc(sizeof *collection);

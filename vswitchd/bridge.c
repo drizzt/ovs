@@ -3394,13 +3394,13 @@ bridge_run(void)
     }
     cfg = ovsrec_open_vswitch_first(idl);
 
-    if (cfg && ovsdb_idl_get_seqno(idl) != idl_seqno) {
-        dpif_offload_set_global_cfg(cfg);
-    }
-
     if (cfg) {
         dpdk_init(&cfg->other_config);
         userspace_tso_init(&cfg->other_config);
+    }
+
+    if (cfg && ovsdb_idl_get_seqno(idl) != idl_seqno) {
+        dpif_offload_set_global_cfg(cfg);
     }
 
     /* Initialize the ofproto library.  This only needs to run once, but

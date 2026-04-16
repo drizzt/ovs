@@ -484,6 +484,191 @@ pmd thread numa_id <cleared> core_id <cleared>:
   Tx batches:                   20  (1.00 pkts/batch)
 ])
 
+dnl Check JSON output.  The counters are checked by the text output
+dnl above, so all the numbers are masked here.
+AT_CHECK([ovs-appctl --format json --pretty dpif-netdev/pmd-perf-show | \
+          sed -e 's/"pmd-c[[0-9]][[0-9]]"/"pmd-c<cleared>"/' \
+              -e 's/: [[0-9.e+-]][[0-9.e+-]]*/: <cleared>/'], [0], [dnl
+{
+  "main": {
+    "packets": {
+      "received": <cleared>,
+      "recirculated": <cleared>,
+      "transmitted": <cleared>},
+    "tx-batches": <cleared>,
+    "usec": <cleared>},
+  "pmd-c<cleared>": {
+    "averages": {
+      "cycles-per-packet": <cleared>,
+      "datapath-passes-per-packet": <cleared>,
+      "packets-per-tx-batch": <cleared>,
+      "rx-kpps": <cleared>,
+      "tx-kpps": <cleared>,
+      "usec-per-iteration": <cleared>,
+      "usec-per-upcall": <cleared>},
+    "core": <cleared>,
+    "cycles": <cleared>,
+    "flow-cache-hits": {
+      "exact": <cleared>,
+      "megaflow": <cleared>,
+      "partial-hardware-offload": <cleared>,
+      "signature": <cleared>,
+      "simple": <cleared>},
+    "iterations": <cleared>,
+    "numa": <cleared>,
+    "packets": {
+      "received": <cleared>,
+      "recirculated": <cleared>,
+      "transmitted": <cleared>},
+    "sleep": {
+      "cycles": <cleared>,
+      "iterations": <cleared>,
+      "percentage": {
+        "cycles": <cleared>,
+        "iterations": <cleared>,
+        "usec": <cleared>},
+      "usec": <cleared>},
+    "tx-batches": <cleared>,
+    "upcalls": {
+      "failure": <cleared>,
+      "success": <cleared>},
+    "usec": <cleared>,
+    "used": {
+      "busy": {
+        "cycles": <cleared>,
+        "iterations": <cleared>,
+        "percentage": {
+          "cycles": <cleared>,
+          "iterations": <cleared>,
+          "usec": <cleared>},
+        "usec": <cleared>},
+      "cycles": <cleared>,
+      "idle": {
+        "cycles": <cleared>,
+        "iterations": <cleared>,
+        "percentage": {
+          "cycles": <cleared>,
+          "iterations": <cleared>,
+          "usec": <cleared>},
+        "usec": <cleared>},
+      "iterations": <cleared>,
+      "percentage": {
+        "cycles": <cleared>,
+        "iterations": <cleared>,
+        "usec": <cleared>},
+      "usec": <cleared>}}}
+])
+
+dnl Check that the JSON output honours -nh, -it and -ms.
+AT_CHECK([ovs-vsctl set Open_vSwitch . other_config:pmd-perf-metrics=true])
+AT_CHECK([ovs-appctl time/warp 100], [0], [ignore])
+
+AT_CHECK([ovs-appctl --format json --pretty dpif-netdev/pmd-perf-show \
+            -it 2 -ms 3], [0], [stdout])
+AT_CHECK([mv stdout perf.json])
+
+dnl No packets were processed since the detailed metrics were enabled, so
+dnl the per packet, per batch and per upcall averages are omitted.
+AT_CHECK([sed -n '/"histograms": {/,/"upcalls-per-iteration": /p' perf.json | \
+          sed 's/: [[0-9.e+-]][[0-9.e+-]]*/: <cleared>/'], [0], [dnl
+    "histograms": {
+      "averages": {
+        "cycles-per-iteration": <cleared>,
+        "maximum-vhost-queue-length": <cleared>,
+        "packets-per-iteration": <cleared>,
+        "upcalls-per-iteration": <cleared>},
+])
+
+dnl Every histogram has the same shape, so only one of them is checked.  The
+dnl keys are the walls, the last bin collects everything above the last wall.
+AT_CHECK([sed -n '/"packets-per-batch": {$/,/}/p' perf.json | \
+          sed 's/: [[0-9]][[0-9]]*/: <cleared>/'], [0], [dnl
+      "packets-per-batch": {
+        "0": <cleared>,
+        "1": <cleared>,
+        "10": <cleared>,
+        "11": <cleared>,
+        "12": <cleared>,
+        "13": <cleared>,
+        "14": <cleared>,
+        "16": <cleared>,
+        "17": <cleared>,
+        "18": <cleared>,
+        "19": <cleared>,
+        "2": <cleared>,
+        "20": <cleared>,
+        "21": <cleared>,
+        "22": <cleared>,
+        "23": <cleared>,
+        "24": <cleared>,
+        "25": <cleared>,
+        "26": <cleared>,
+        "27": <cleared>,
+        "28": <cleared>,
+        "29": <cleared>,
+        "3": <cleared>,
+        "30": <cleared>,
+        "32": <cleared>,
+        "4": <cleared>,
+        "5": <cleared>,
+        "6": <cleared>,
+        "7": <cleared>,
+        "8": <cleared>,
+        "9": <cleared>,
+        "more": <cleared>},
+])
+
+dnl -it and -ms select how many samples of the two histories are reported.
+dnl Without packets, the per packet, per batch and per upcall values are
+dnl omitted.  Milliseconds without iterations omit the per iteration values,
+dnl so these are filtered out.
+AT_CHECK([sed -n '/"iteration-history": /,/}@:>@/p' perf.json | \
+          sed 's/: [[0-9.e+-]][[0-9.e+-]]*/: <cleared>/'], [0], [dnl
+    "iteration-history": [[
+      {
+        "cycles": <cleared>,
+        "iteration": <cleared>,
+        "maximum-vhost-queue-length": <cleared>,
+        "packets": <cleared>,
+        "upcalls": <cleared>},
+      {
+        "cycles": <cleared>,
+        "iteration": <cleared>,
+        "maximum-vhost-queue-length": <cleared>,
+        "packets": <cleared>,
+        "upcalls": <cleared>}]],
+])
+
+AT_CHECK([sed -n '/"millisecond-history": /,/}@:>@/p' perf.json | \
+          sed -e '/"cycles-per-iteration": /d' \
+              -e '/"maximum-vhost-queue-length": /d' \
+              -e 's/: [[0-9.e+-]][[0-9.e+-]]*/: <cleared>/'], [0], [dnl
+    "millisecond-history": [[
+      {
+        "iterations": <cleared>,
+        "kpps": <cleared>,
+        "millisecond": <cleared>,
+        "upcalls": <cleared>},
+      {
+        "iterations": <cleared>,
+        "kpps": <cleared>,
+        "millisecond": <cleared>,
+        "upcalls": <cleared>},
+      {
+        "iterations": <cleared>,
+        "kpps": <cleared>,
+        "millisecond": <cleared>,
+        "upcalls": <cleared>}]],
+])
+
+dnl With -nh no histogram is reported, and without -it and -ms neither
+dnl history is.
+AT_CHECK([ovs-appctl --format json --pretty dpif-netdev/pmd-perf-show -nh],
+         [0], [stdout])
+AT_CHECK([mv stdout perf-nh.json])
+AT_CHECK([sed -n -e '/"histograms": /p' -e '/"iteration-history": /p' \
+              -e '/"millisecond-history": /p' perf-nh.json], [0], [])
+
 OVS_VSWITCHD_STOP
 AT_CLEANUP
 

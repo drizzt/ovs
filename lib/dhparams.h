@@ -17,10 +17,13 @@
 #ifndef DHPARAMS_H
 #define DHPARAMS_H 1
 
-#include <inttypes.h>
+#include <openssl/opensslv.h>
+
+#if OPENSSL_VERSION_NUMBER < 0x3000000fL
 #include <openssl/dh.h>
 
 DH *get_dh2048(void);
 DH *get_dh4096(void);
+#endif
 
 #endif /* dhparams.h */

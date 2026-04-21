@@ -64,7 +64,7 @@ void
 sha1_init(struct sha1_ctx *sha_info)
 {
 #ifdef HAVE_OPENSSL
-    sha_info->ctx = EVP_MD_CTX_create();
+    sha_info->ctx = EVP_MD_CTX_new();
     if (!EVP_DigestInit_ex(sha_info->ctx, EVP_sha1(), NULL)) {
         log_openssl_err("EVP_DigestInit_ex");
     }
@@ -106,7 +106,7 @@ sha1_final(struct sha1_ctx *ctx, uint8_t digest[SHA1_DIGEST_SIZE])
         log_openssl_err("EVP_DigestFinal_ex");
     }
     ovs_assert(len == SHA1_DIGEST_SIZE);
-    EVP_MD_CTX_destroy(ctx->ctx);
+    EVP_MD_CTX_free(ctx->ctx);
 #else
     ovs_sha1_final(ctx, digest);
 #endif

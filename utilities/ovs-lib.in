@@ -183,8 +183,10 @@ start_daemon () {
     # pidfile and monitoring
     install_dir "$rundir"
     set "$@" --pidfile="$rundir/$daemon.pid"
-    set "$@" --detach
-    test X"$MONITOR" = Xno || set "$@" --monitor
+    if test X"$FOREGROUND" != Xyes; then
+        set "$@" --detach
+        test X"$MONITOR" = Xno || set "$@" --monitor
+    fi
 
     # wrapper
     case $wrapper in
@@ -227,6 +229,10 @@ start_daemon () {
     if [ -n "$umask" ]; then
         previuos_umask_value=$(umask)
         umask "$umask"
+    fi
+
+    if test X"$FOREGROUND" = Xyes; then
+        exec "$@"
     fi
 
     action "Starting $daemon" "$@" || return 1

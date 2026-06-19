@@ -165,19 +165,26 @@ do_start_ovsdb () {
         start_daemon "$OVSDB_SERVER_PRIORITY" "$OVSDB_SERVER_WRAPPER" \
             "$OVSDB_SERVER_UMASK" "$@" || return 1
 
-        # Initialize database settings.
-        ovs_vsctl -- init -- set Open_vSwitch . db-version="$schemaver" \
-            || return 1
-        set_system_ids || return 1
-        if test X"$DELETE_BRIDGES" = Xyes; then
-            for bridge in `ovs_vsctl list-br`; do
-                ovs_vsctl del-br $bridge
-            done
-        fi
-        if test X"$DELETE_TRANSIENT_PORTS" = Xyes; then
-            del_transient_ports
-        fi
+        init_ovsdb || return 1
     fi
+}
+
+init_ovsdb () {
+    if test -z "$schemaver"; then
+        schemaver=`ovsdb_tool schema-version "$DB_SCHEMA"`
+    fi
+    ovs_vsctl -- init -- set Open_vSwitch . db-version="$schemaver" \
+        || return 1
+    set_system_ids || return 1
+    if test X"$DELETE_BRIDGES" = Xyes; then
+        for bridge in `ovs_vsctl list-br`; do
+            ovs_vsctl del-br $bridge
+        done
+    fi
+    if test X"$DELETE_TRANSIENT_PORTS" = Xyes; then
+        del_transient_ports
+    fi
+    add_managers
 }
 
 start_ovsdb() {
@@ -363,6 +370,7 @@ set_defaults () {
     OVSDB_SERVER_UMASK=
     OVS_VSWITCHD_UMASK=
     OOM_SCORE=
+    FOREGROUND=no
     ULIMIT_CORE=67108864
 
     DB_FILE=$dbdir/conf.db
@@ -422,6 +430,8 @@ Commands:
                               ports
   start-ovs-ipsec             start Open vSwitch ipsec daemon
   stop-ovs-ipsec              stop Open vSwitch ipsec daemon
+  init-db                     initialize database settings after ovsdb-server
+                              has started (system IDs, managers, etc.)
   record-hostname-if-not-set  determine the system hostname and record it in
                               the Open vSwitch database if not already set
   help                        display this help message
@@ -482,6 +492,11 @@ Option for "start-ovs-ipsec":
   --ovs-monitor-ipsec-options=OPTIONS
       additional options for ovs-monitor-ipsec (example:
       '--ipsec-conf=/etc/ipsec.d/ovs.conf --root-ipsec-conf=/etc/ipsec.conf')
+
+Systemd options for "start":
+  --foreground                run daemons in foreground (for systemd
+                              Type=notify); daemon signals readiness via
+                              sd_notify and never returns
 
 Other options:
   -h, --help                  display this help message
@@ -609,6 +624,9 @@ case $command in
         ;;
     enable-protocol)
         enable_protocol
+        ;;
+    init-db)
+        init_ovsdb
         ;;
     delete-transient-ports)
         del_transient_ports

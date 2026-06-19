@@ -7,8 +7,8 @@ Wants=ovs-delete-transient-ports.service
 PartOf=openvswitch.service
 
 [Service]
-Type=forking
-PIDFile=/run/openvswitch/ovsdb-server.pid
+Type=notify
+NotifyAccess=all
 Restart=on-failure
 EnvironmentFile=/etc/openvswitch/default.conf
 EnvironmentFile=-/etc/sysconfig/openvswitch
@@ -25,8 +25,13 @@ ExecStartPre=/bin/sh -c '/usr/bin/echo "OVS_USER_ID=${OVS_USER_ID}" > /run/openv
 ExecStartPre=/bin/sh -c 'if [ "$${OVS_USER_ID/:*/}" != "root" ]; then /usr/bin/echo "OVS_USER_OPT=--ovs-user=${OVS_USER_ID}" >> /run/openvswitch.useropts; fi'
 ExecStart=/usr/share/openvswitch/scripts/ovs-ctl \
           --no-ovs-vswitchd --no-monitor --system-id=random \
+          --foreground \
           ${OVS_USER_OPT} \
           start $OPTIONS
+ExecStartPost=/usr/share/openvswitch/scripts/ovs-ctl \
+          --no-ovs-vswitchd --system-id=random \
+          ${OVS_USER_OPT} \
+          init-db $OPTIONS
 ExecStop=/usr/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd stop
 ExecReload=/usr/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd \
            ${OVS_USER_OPT} \

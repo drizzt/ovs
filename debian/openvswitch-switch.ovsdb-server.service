@@ -8,14 +8,17 @@ DefaultDependencies=no
 
 [Service]
 LimitNOFILE=1048576
-Type=forking
-PIDFile=/run/openvswitch/ovsdb-server.pid
+Type=notify
+NotifyAccess=all
 Restart=on-failure
 EnvironmentFile=-/etc/default/openvswitch-switch
 ExecStart=/usr/share/openvswitch/scripts/ovs-ctl \
           --no-ovs-vswitchd --no-monitor --system-id=random \
-          --no-record-hostname \
+          --no-record-hostname --foreground \
           start $OVS_CTL_OPTS
+ExecStartPost=/usr/share/openvswitch/scripts/ovs-ctl \
+          --no-ovs-vswitchd --system-id=random \
+          init-db $OVS_CTL_OPTS
 ExecStop=/usr/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd stop
 ExecReload=/usr/share/openvswitch/scripts/ovs-ctl --no-ovs-vswitchd \
           --no-record-hostname \

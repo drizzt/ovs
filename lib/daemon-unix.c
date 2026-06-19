@@ -23,9 +23,12 @@
 #include <grp.h>
 #include <pwd.h>
 #include <signal.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/resource.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -498,6 +501,54 @@ daemonize_start(bool access_datapath, bool access_hardware_ports)
     vlog_init();
 }
 
+/* Sends a notification to the systemd service manager via the sd_notify
+ * protocol.  This is a no-op when the NOTIFY_SOCKET environment variable is
+ * not set (i.e. the process is not running under systemd with Type=notify).
+ *
+ * The implementation uses a direct datagram send to the NOTIFY_SOCKET,
+ * avoiding a dependency on libsystemd. */
+void
+daemon_sd_notify(const char *state)
+{
+    const char *e = getenv("NOTIFY_SOCKET");
+    if (!e || !e[0]) {
+        return;
+    }
+
+    struct sockaddr_un sa;
+    memset(&sa, 0, sizeof sa);
+    sa.sun_family = AF_UNIX;
+
+    size_t path_len;
+    if (e[0] == '@') {
+        /* Abstract socket: leading NUL replaces '@'. */
+        sa.sun_path[0] = '\0';
+        path_len = strlen(e + 1);
+        if (path_len >= sizeof sa.sun_path - 1) {
+            return;
+        }
+        memcpy(sa.sun_path + 1, e + 1, path_len);
+        path_len++;
+    } else {
+        path_len = strlen(e);
+        if (path_len >= sizeof sa.sun_path) {
+            return;
+        }
+        memcpy(sa.sun_path, e, path_len);
+        path_len++;  /* Include trailing NUL in address length. */
+    }
+
+    int fd = socket(AF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC, 0);
+    if (fd < 0) {
+        return;
+    }
+
+    ovs_ignore(sendto(fd, state, strlen(state), 0,
+                      (struct sockaddr *) &sa,
+                      offsetof(struct sockaddr_un, sun_path) + path_len));
+    close(fd);
+}
+
 /* If daemonization is configured, then this function notifies the parent
  * process that the child process has completed startup successfully.  It also
  * call daemonize_post_detach().
@@ -516,6 +567,11 @@ daemonize_complete(void)
 
         fork_notify_startup(daemonize_fd);
         daemonize_post_detach();
+
+        char buf[64];
+        snprintf(buf, sizeof buf,
+                 "READY=1\nMAINPID=%ld", (long) getpid());
+        daemon_sd_notify(buf);
     }
 }
 

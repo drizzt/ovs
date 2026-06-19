@@ -107,5 +107,6 @@ void daemon_disable_self_confinement(void);
 bool daemon_should_self_confine(void);
 void set_pidfile(const char *name);
 void close_standard_fds(void);
+void daemon_sd_notify(const char *state);
 
 #endif /* daemon.h */

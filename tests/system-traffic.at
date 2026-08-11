@@ -2524,6 +2524,45 @@ masks-cache:size:256
 OVS_TRAFFIC_VSWITCHD_STOP
 AT_CLEANUP
 
+AT_SETUP([datapath - dpctl/show JSON output])
+
+OVS_TRAFFIC_VSWITCHD_START()
+OVS_CHECK_KERNEL_EXCL(3, 10, 5, 8)
+
+dnl Check that the mask and cache details are present in the JSON output.
+dnl The values are not stable, so only the structure is checked.  The cache
+dnl statistics are not included, as the datapath reports no cache hits at
+dnl this point.  The mask hits per packet are only reported if a packet was
+dnl looked up, so they are filtered out.
+AT_CHECK([ovs-appctl --format json --pretty dpctl/show | \
+          sed -e '/"hits-per-packet": /d' \
+              -e 's/: [[0-9]][[0-9.e+-]]*/: <cleared>/g'], [0], [dnl
+{
+  "system@ovs-system": {
+    "cache": {
+      "config": {
+        "masks-cache": {
+          "size": <cleared>}}},
+    "flows": <cleared>,
+    "lookups": {
+      "hits": <cleared>,
+      "lost": <cleared>,
+      "missed": <cleared>},
+    "masks": {
+      "hits": <cleared>,
+      "total": <cleared>},
+    "ports": {
+      "br0": {
+        "port-number": <cleared>,
+        "type": "internal"},
+      "ovs-system": {
+        "port-number": <cleared>,
+        "type": "internal"}}}}
+])
+
+OVS_TRAFFIC_VSWITCHD_STOP
+AT_CLEANUP
+
 AT_SETUP([datapath - drop action])
 OVS_TRAFFIC_VSWITCHD_START()
 OVS_CHECK_DROP_ACTION()

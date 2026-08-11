@@ -2521,6 +2521,37 @@ AT_CHECK([ovs-dpctl cache-get-size | grep masks-cache | tr -d [[:blank:]]], [0],
 masks-cache:size:256
 ])
 
+dnl Check that the mask and cache details are present in the JSON output.
+dnl The values depend on the traffic, so only the structure is checked.  The
+dnl cache statistics are not included, as the datapath reports no cache hits
+dnl at this point.  The mask hits per packet are only reported if a packet
+dnl was looked up, so they are filtered out.
+AT_CHECK([ovs-appctl --format json --pretty dpctl/show | dnl
+          sed -e '/"hits-per-packet": /d' dnl
+              -e 's/: [[0-9]][[0-9.e+-]]*/: <cleared>/g'], [0], [dnl
+{
+  "system@ovs-system": {
+    "cache": {
+      "config": {
+        "masks-cache": {
+          "size": <cleared>}}},
+    "flows": <cleared>,
+    "lookups": {
+      "hits": <cleared>,
+      "lost": <cleared>,
+      "missed": <cleared>},
+    "masks": {
+      "hits": <cleared>,
+      "total": <cleared>},
+    "ports": {
+      "br0": {
+        "port-number": <cleared>,
+        "type": "internal"},
+      "ovs-system": {
+        "port-number": <cleared>,
+        "type": "internal"}}}}
+])
+
 OVS_TRAFFIC_VSWITCHD_STOP
 AT_CLEANUP
 
